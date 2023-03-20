@@ -26,7 +26,7 @@ final class Connection
         if (!$databaseUrl) {
             throw new \Exception("Error reading database configuration file");
         }
-        $dbScheme = $databaseUrl['scheme'];
+        //$dbScheme = $databaseUrl['scheme'];
         $dbHost = $databaseUrl['host'];
         $dbPort = $databaseUrl['port'];
         $dbName = ltrim($databaseUrl['path'], '/');
@@ -34,8 +34,8 @@ final class Connection
         $dbPassword = $databaseUrl['pass'];
 
         $conStr = sprintf(
-            "%s:host=%s;port=%d;dbname=%s;user=%s;password=%s",
-            $dbScheme,
+            "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
+            //$dbScheme,
             $dbHost,
             $dbPort,
             $dbName,
