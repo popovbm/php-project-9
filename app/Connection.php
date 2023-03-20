@@ -23,6 +23,7 @@ final class Connection
         $dotenv->safeLoad();
 
         $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+        dd($databaseUrl);
         if (!$databaseUrl) {
             throw new \Exception("Error reading database configuration file");
         }
