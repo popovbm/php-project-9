@@ -42,7 +42,6 @@ final class Connection
             $dbUser,
             $dbPassword
         );
-        dd($conStr);
 
         $pdo = new \PDO($conStr);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
