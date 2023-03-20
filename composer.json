@@ -1,8 +1,9 @@
 {
     "name": "hexlet/code",
+    "description": "Page Analyzer",
     "autoload": {
         "psr-4": {
-            "Hexlet\\Code\\": "src/"
+            "Hexlet\\Code\\": "app/"
         }
     },
     "authors": [
@@ -12,10 +13,17 @@
         }
     ],
     "require": {
-        "slim/slim": "4.*",
-        "slim/psr7": "^1.6",
         "squizlabs/php_codesniffer": "*",
+        "twbs/bootstrap": "5.3.0-alpha1",
+        "slim/flash": "^0.4.0",
+        "vlucas/valitron": "^1.4",
+        "nesbot/carbon": "^2.66",
+        "tightenco/collect": "^8.83",
+        "slim/slim": "^4.11",
         "slim/php-view": "^3.2",
-        "twbs/bootstrap": "5.3.0-alpha1"
+        "slim/psr7": "^1.6",
+        "php-di/php-di": "*",
+        "slim/http": "^1.3",
+        "vlucas/phpdotenv": "^5.5"
     }
 }
