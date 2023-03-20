@@ -23,10 +23,10 @@ final class Connection
         $dotenv->safeLoad();
 
         $databaseUrl = parse_url($_ENV['DATABASE_URL']);
-        dd($databaseUrl);
         if (!$databaseUrl) {
             throw new \Exception("Error reading database configuration file");
         }
+        $dbScheme = $databaseUrl['scheme'];
         $dbHost = $databaseUrl['host'];
         $dbPort = $databaseUrl['port'];
         $dbName = ltrim($databaseUrl['path'], '/');
@@ -34,13 +34,15 @@ final class Connection
         $dbPassword = $databaseUrl['pass'];
 
         $conStr = sprintf(
-            "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
+            "%s:host=%s;port=%d;dbname=%s;user=%s;password=%s",
+            $dbScheme,
             $dbHost,
             $dbPort,
             $dbName,
             $dbUser,
             $dbPassword
         );
+        dd($conStr);
 
         $pdo = new \PDO($conStr);
         $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
