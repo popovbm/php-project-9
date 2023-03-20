@@ -73,7 +73,6 @@ $app->post('/urls', function ($request, $response) use ($router) {
     if ($validator->validate()) {
         try {
             $pdo = Connection::get()->connect();
-            echo 'A connection to the PostgreSQL database sever has been established successfully.';
 
             $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
             $pdo->exec($parsedDatabaseSql);
