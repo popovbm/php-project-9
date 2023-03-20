@@ -26,20 +26,19 @@ final class Connection
         if (!$databaseUrl) {
             throw new \Exception("Error reading database configuration file");
         }
-        // export DATABASE_URL=postgresql://popovbm:123123@localhost:5432/databasedev
-        $username = $databaseUrl['user'];
-        $password = $databaseUrl['pass'];
-        $host = $databaseUrl['host'];
-        $port = $databaseUrl['port'];
+        $dbHost = $databaseUrl['host'];
+        $dbPort = $databaseUrl['port'];
         $dbName = ltrim($databaseUrl['path'], '/');
+        $dbUser = $databaseUrl['user'];
+        $dbPassword = $databaseUrl['pass'];
 
         $conStr = sprintf(
             "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
-            $host,
-            $port,
+            $dbHost,
+            $dbPort,
             $dbName,
-            $username,
-            $password
+            $dbUser,
+            $dbPassword
         );
 
         $pdo = new \PDO($conStr);
