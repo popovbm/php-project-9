@@ -48,12 +48,12 @@
                             <th>Код ответа</th>
                         </tr>
 
-                        <?php foreach ($data as $url) : ?>
+                        <?php foreach ($data as $id => $url) : ?>
                             <tr>
-                                <td><?= $url['id'] ?></td>
-                                <td><a href="/urls/<?= $url['id'] ?>"><?= $url['name'] ?></a></td>
-                                <td><?= $url['lastCheck'] ?? '' ?></td>
-                                <td><?= $url['statusCode'] ?? '' ?></td>
+                                <td><?= $id ?></td>
+                                <td><a href="/urls/<?= $id ?>"><?= $url['name'] ?></a></td>
+                                <td><?= $url['created_at'] ?? '' ?></td>
+                                <td><?= $url['status_code'] ?? '' ?></td>
                             </tr>
                         <?php endforeach ?>
                     </tbody>

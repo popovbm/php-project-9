@@ -33,12 +33,27 @@ $app->get('/', function (Request $request, Response $response) {
 
 $app->get('/urls', function ($request, $response) {
     $pdo = Connection::get()->connect();
-    $query = 'SELECT * FROM urls ORDER BY id DESC';
-    $stmt = $pdo->prepare($query);
+    $queryUrl = 'SELECT id, name FROM urls ORDER BY created_at DESC';
+    $stmt = $pdo->prepare($queryUrl);
     $stmt->execute();
-    $select = $stmt->fetchAll();
+    $selectUrl = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
+    //dump($selectUrl);
+
+    $queryChecks = 'SELECT url_id, created_at FROM url_checks';
+    $stmt = $pdo->prepare($queryChecks);
+    $stmt->execute();
+    $selectedChecks = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
+    //dump($selectedChecks);
+
+    foreach ($selectedChecks as $key => $value) {
+        if (array_key_exists($key, $selectUrl)) {
+            $selectUrl[$key] = array_merge($selectUrl[$key], $value);
+        }
+    }
+    //dump($selectUrl);
+
     $params = [
-        'data' => $select
+        'data' => $selectUrl
     ];
     return $this->get('renderer')->render($response, 'urls.phtml', $params);
 })->setName('urls');
@@ -53,9 +68,15 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $stmt->execute([$id]);
     $select = $stmt->fetch();
 
+    $queryCheck = 'SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC';
+    $stmt = $pdo->prepare($queryCheck);
+    $stmt->execute([$id]);
+    $selectedCheck = $stmt->fetchAll();
+
     $params = [
         'flash' => $messages,
-        'data' => $select
+        'data' => $select,
+        'checkData' => $selectedCheck
     ];
     return $this->get('renderer')->render($response, 'url.phtml', $params);
 })->setName('url');
@@ -118,8 +139,21 @@ $app->post('/urls', function ($request, $response) use ($router) {
     return $this->get('renderer')->render($response, 'main.phtml', $params);
 });
 
-// $app->post('/urls/{id}/checks', function ($request, $response, $args) {
-//     $id = $args['id'];
-// });
+$app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
+    $id = $args['url_id'];
+
+    try {
+        $pdo = Connection::get()->connect();
+        $createdAt = Carbon::now();
+        $sql = "INSERT INTO url_checks (url_id, created_at) VALUES (?, ?);";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$id, $createdAt]);
+        $this->get('flash')->addMessage('success', 'Страница успешно проверена');
+    } catch (\PDOException $e) {
+        echo $e->getMessage();
+    }
+
+    return $response->withRedirect($router->urlFor('url', ['id' => $id]));
+});
 
 $app->run();
