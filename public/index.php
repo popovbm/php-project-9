@@ -28,6 +28,10 @@ $app->addErrorMiddleware(true, true, true);
 
 
 $app->get('/', function (Request $request, Response $response) {
+    $pdo = Connection::get()->connect();
+
+    $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
+    $pdo->exec($parsedDatabaseSql);
     return $this->get('renderer')->render($response, "main.phtml");
 })->setName('main');
 
@@ -94,9 +98,6 @@ $app->post('/urls', function ($request, $response) use ($router) {
     if ($validator->validate()) {
         try {
             $pdo = Connection::get()->connect();
-
-            $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
-            $pdo->exec($parsedDatabaseSql);
 
             $url = strtolower($formData['name']);
             $parsedUrl = parse_url($url);
