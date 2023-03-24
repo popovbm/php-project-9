@@ -25,7 +25,6 @@ class CheckUrl
             echo Psr7\Message::toString($e->getResponse());
         }
 
-        $statusCode = $res->getStatusCode();
-        return $statusCode;
+        return $res->getStatusCode();
     }
 }
