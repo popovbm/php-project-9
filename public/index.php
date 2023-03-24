@@ -7,6 +7,7 @@ use Slim\Factory\AppFactory;
 use DI\Container;
 use Valitron\Validator;
 use Hexlet\Code\Connection;
+use Hexlet\Code\CheckUrl;
 use Carbon\Carbon;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -40,24 +41,21 @@ $app->get('/urls', function ($request, $response) {
     $queryUrl = 'SELECT id, name FROM urls ORDER BY created_at DESC';
     $stmt = $pdo->prepare($queryUrl);
     $stmt->execute();
-    $selectUrl = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
-    //dump($selectUrl);
+    $selectedUrls = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
 
-    $queryChecks = 'SELECT url_id, created_at FROM url_checks';
+    $queryChecks = 'SELECT url_id, created_at, status_code FROM url_checks';
     $stmt = $pdo->prepare($queryChecks);
     $stmt->execute();
     $selectedChecks = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
-    //dump($selectedChecks);
 
     foreach ($selectedChecks as $key => $value) {
-        if (array_key_exists($key, $selectUrl)) {
-            $selectUrl[$key] = array_merge($selectUrl[$key], $value);
+        if (array_key_exists($key, $selectedUrls)) {
+            $selectedUrls[$key] = array_merge($selectedUrls[$key], $value);
         }
     }
-    //dump($selectUrl);
 
     $params = [
-        'data' => $selectUrl
+        'data' => $selectedUrls
     ];
     return $this->get('renderer')->render($response, 'urls.phtml', $params);
 })->setName('urls');
@@ -145,10 +143,20 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
     try {
         $pdo = Connection::get()->connect();
+
+        $queryUrl = 'SELECT name FROM urls WHERE id = ?';
+        $stmt = $pdo->prepare($queryUrl);
+        $stmt->execute([$id]);
+        $selectedUrl = $stmt->fetch(\PDO::FETCH_COLUMN);
+
         $createdAt = Carbon::now();
-        $sql = "INSERT INTO url_checks (url_id, created_at) VALUES (?, ?);";
+
+        $client = new CheckUrl($selectedUrl);
+        $statusCode = $client->check();
+
+        $sql = "INSERT INTO url_checks (url_id, created_at, status_code) VALUES (?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$id, $createdAt]);
+        $stmt->execute([$id, $createdAt, $statusCode]);
         $this->get('flash')->addMessage('success', 'Страница успешно проверена');
     } catch (\PDOException $e) {
         echo $e->getMessage();
