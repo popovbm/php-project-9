@@ -1,6 +1,7 @@
 {
     "name": "hexlet/code",
     "description": "Page Analyzer",
+    "type": "project",
     "autoload": {
         "psr-4": {
             "Hexlet\\Code\\": "app/"
@@ -12,6 +13,7 @@
             "email": "popovbm@gmail.com"
         }
     ],
+    "minimum-stability": "stable",
     "require": {
         "squizlabs/php_codesniffer": "*",
         "twbs/bootstrap": "5.3.0-alpha1",
