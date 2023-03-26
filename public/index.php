@@ -7,7 +7,8 @@ use Slim\Factory\AppFactory;
 use DI\Container;
 use Valitron\Validator;
 use Hexlet\Code\Connection;
-use Hexlet\Code\CheckUrl;
+use Hexlet\Code\CheckStatusCode;
+use Hexlet\Code\CheckHtmlData;
 use Carbon\Carbon;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -43,7 +44,7 @@ $app->get('/urls', function ($request, $response) {
     $stmt->execute();
     $selectedUrls = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
 
-    $queryChecks = 'SELECT url_id, created_at, status_code FROM url_checks';
+    $queryChecks = 'SELECT url_id, created_at, status_code, h1, title, description FROM url_checks';
     $stmt = $pdo->prepare($queryChecks);
     $stmt->execute();
     $selectedChecks = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
@@ -151,12 +152,15 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
         $createdAt = Carbon::now();
 
-        $client = new CheckUrl($selectedUrl);
+        $client = new CheckStatusCode($selectedUrl);
         $statusCode = $client->check();
 
-        $sql = "INSERT INTO url_checks (url_id, created_at, status_code) VALUES (?, ?, ?)";
+        $document = new CheckHtmlData($selectedUrl);
+        $htmlData = $document->getHtmlData();
+
+        $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$id, $createdAt, $statusCode]);
+        $stmt->execute([$id, $createdAt, $statusCode, $htmlData['h1'], $htmlData['title'], $htmlData['description']]);
         $this->get('flash')->addMessage('success', 'Страница успешно проверена');
     } catch (\PDOException $e) {
         echo $e->getMessage();
