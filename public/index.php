@@ -117,7 +117,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
                 return $response->withRedirect($router->urlFor('url', ['id' => $selectId]));
             }
 
-            $sql = "INSERT INTO urls (name, created_at) VALUES (?, ?);";
+            $sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$urlName, $createdAt]);
             $lastInsertId = $pdo->lastInsertId();
@@ -158,7 +158,14 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         $document = new CheckHtmlData($selectedUrl);
         $htmlData = $document->getHtmlData();
 
-        $sql = "INSERT INTO url_checks (url_id, created_at, status_code, h1, title, description) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO url_checks (
+            url_id, 
+            created_at, 
+            status_code, 
+            h1, 
+            title, 
+            description) 
+            VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id, $createdAt, $statusCode, $htmlData['h1'], $htmlData['title'], $htmlData['description']]);
         $this->get('flash')->addMessage('success', 'Страница успешно проверена');

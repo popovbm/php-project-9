@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "402929bd2e9adafca544868af495c66c",
+    "content-hash": "e42695fd6d073adf0968c501eb09a9e0",
     "packages": [
         {
             "name": "doctrine/inflector",
@@ -2814,16 +2814,16 @@
         },
         {
             "name": "twbs/bootstrap",
-            "version": "v5.3.0-alpha2",
+            "version": "v5.2.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twbs/bootstrap.git",
-                "reference": "c877cefcef18d6a60c5eaec8df469933e64e212a"
+                "reference": "cb021439c683d9805e2864c58095b92d405e9b11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twbs/bootstrap/zipball/c877cefcef18d6a60c5eaec8df469933e64e212a",
-                "reference": "c877cefcef18d6a60c5eaec8df469933e64e212a",
+                "url": "https://api.github.com/repos/twbs/bootstrap/zipball/cb021439c683d9805e2864c58095b92d405e9b11",
+                "reference": "cb021439c683d9805e2864c58095b92d405e9b11",
                 "shasum": ""
             },
             "replace": {
@@ -2858,9 +2858,9 @@
             ],
             "support": {
                 "issues": "https://github.com/twbs/bootstrap/issues",
-                "source": "https://github.com/twbs/bootstrap/tree/v5.3.0-alpha2"
+                "source": "https://github.com/twbs/bootstrap/tree/v5.2.3"
             },
-            "time": "2023-03-24T14:30:16+00:00"
+            "time": "2022-11-21T18:19:01+00:00"
         },
         {
             "name": "vlucas/phpdotenv",
@@ -3083,9 +3083,7 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "twbs/bootstrap": 15
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

@@ -17,7 +17,7 @@
     "minimum-stability": "stable",
     "require": {
         "squizlabs/php_codesniffer": "3.*",
-        "twbs/bootstrap": "^5.3.0-alpha2",
+        "twbs/bootstrap": "^5.2.3",
         "slim/flash": "^0.4.0",
         "vlucas/valitron": "^1.4",
         "nesbot/carbon": "^2.66",
