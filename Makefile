@@ -9,10 +9,10 @@ validate:
 	composer validate
 
 lint:
-	composer exec --verbose phpcs -- --standard=PSR12 src public
+	composer exec --verbose phpcs -- --standard=PSR12 src public app
 
 lint-fix:
-	composer exec --verbose phpcbf -- --standard=PSR12 src public
+	composer exec --verbose phpcbf -- --standard=PSR12 src public app
 
 test:
 	composer exec --verbose phpunit tests
