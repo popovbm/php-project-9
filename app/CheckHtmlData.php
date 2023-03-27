@@ -10,14 +10,17 @@ use GuzzleHttp\Exception\RequestException;
 
 class CheckHtmlData
 {
-    public $url;
+    public string $url = '';
 
-    public function __construct($url)
+    public function __construct(string $url)
     {
         $this->url = $url;
     }
 
-    public function getHtmlData()
+    /**
+     * @return array<mixed>
+     */
+    public function getHtmlData(): array
     {
         $client = new Client();
         try {

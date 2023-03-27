@@ -28,12 +28,19 @@ $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $app->addErrorMiddleware(true, true, true);
 
+try {
+    $pdo = Connection::get()->connect();
+    $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
+    if ($parsedDatabaseSql === false) {
+        throw new \Exception("Error reading database.sql");
+    } else {
+        $pdo->exec($parsedDatabaseSql);
+    }
+} catch (\Exception $e) {
+    return $e->getMessage();
+}
 
 $app->get('/', function (Request $request, Response $response) {
-    $pdo = Connection::get()->connect();
-
-    $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
-    $pdo->exec($parsedDatabaseSql);
     return $this->get('renderer')->render($response, "main.phtml");
 })->setName('main');
 

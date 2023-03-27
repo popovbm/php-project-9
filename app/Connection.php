@@ -52,7 +52,7 @@ final class Connection
      * возврат экземпляра объекта Connection
      * тип @return
      */
-    public static function get()
+    public static function get(): Connection
     {
         if (null === static::$conn) {
             static::$conn = new self();

@@ -6,20 +6,21 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\BadResponseException;
+use Psr\Http\Message\MessageInterface;
 
 class CheckStatusCode
 {
-    public $name;
+    public string $name = '';
 
-    public function __construct($name)
+    public function __construct(string $name)
     {
         $this->name = $name;
     }
 
-    public function check()
+    public function check(): mixed
     {
         $client = new Client();
+        $res = 0;
         try {
             $res = $client->request('GET', $this->name);
         } catch (ClientException | RequestException $e) {
