@@ -119,7 +119,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
                 $queryId = 'SELECT id FROM urls WHERE name = ?';
                 $stmt = $pdo->prepare($queryId);
                 $stmt->execute([$urlName]);
-                $selectId = $stmt->fetchColumn();
+                $selectId = (string) $stmt->fetchColumn();
                 $this->get('flash')->addMessage('success', 'Страница уже существует');
                 return $response->withRedirect($router->urlFor('url', ['id' => $selectId]));
             }
@@ -127,7 +127,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
             $sql = "INSERT INTO urls (name, created_at) VALUES (?, ?)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$urlName, $createdAt]);
-            $lastInsertId = $pdo->lastInsertId();
+            $lastInsertId = (string) $pdo->lastInsertId();
             $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
             return $response->withRedirect($router->urlFor('url', ['id' => $lastInsertId]));
         } catch (\PDOException $e) {
