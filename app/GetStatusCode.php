@@ -8,7 +8,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\MessageInterface;
 
-class CheckStatusCode
+class GetStatusCode
 {
     public string $name = '';
 
@@ -20,7 +20,7 @@ class CheckStatusCode
     /**
      * @return mixed
      */
-    public function check()
+    public function get()
     {
         $client = new Client();
         $res = 0;

@@ -7,7 +7,7 @@ use Slim\Factory\AppFactory;
 use DI\Container;
 use Valitron\Validator;
 use Hexlet\Code\Connection;
-use Hexlet\Code\CheckStatusCode;
+use Hexlet\Code\GetStatusCode;
 use Hexlet\Code\CheckHtmlData;
 use Carbon\Carbon;
 
@@ -51,7 +51,14 @@ $app->get('/urls', function ($request, $response) {
     $stmt->execute();
     $selectedUrls = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
 
-    $queryChecks = 'SELECT url_id, created_at, status_code, h1, title, description FROM url_checks';
+    $queryChecks = 'SELECT 
+    url_id, 
+    created_at, 
+    status_code, 
+    h1, 
+    title, 
+    description 
+    FROM url_checks';
     $stmt = $pdo->prepare($queryChecks);
     $stmt->execute();
     $selectedChecks = $stmt->fetchAll(\PDO::FETCH_UNIQUE);
@@ -120,6 +127,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
                 $stmt = $pdo->prepare($queryId);
                 $stmt->execute([$urlName]);
                 $selectId = (string) $stmt->fetchColumn();
+
                 $this->get('flash')->addMessage('success', 'Страница уже существует');
                 return $response->withRedirect($router->urlFor('url', ['id' => $selectId]));
             }
@@ -128,6 +136,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$urlName, $createdAt]);
             $lastInsertId = (string) $pdo->lastInsertId();
+
             $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
             return $response->withRedirect($router->urlFor('url', ['id' => $lastInsertId]));
         } catch (\PDOException $e) {
@@ -159,8 +168,8 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
         $createdAt = Carbon::now();
 
-        $client = new CheckStatusCode($selectedUrl);
-        $statusCode = $client->check();
+        $client = new GetStatusCode($selectedUrl);
+        $statusCode = $client->get();
 
         $document = new CheckHtmlData($selectedUrl);
         $htmlData = $document->getHtmlData();

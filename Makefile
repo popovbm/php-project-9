@@ -9,8 +9,8 @@ validate:
 	composer validate
 
 lint:
-	composer exec --verbose phpcs -- --standard=PSR12 src public app
-	composer exec --verbose phpstan -- --level=8 --xdebug analyse public
+	composer exec --verbose phpcs -- --standard=PSR12 public app
+	composer exec --verbose phpstan -- --level=8 --xdebug analyse public app
 
 lint-fix:
 	composer exec --verbose phpcbf -- --standard=PSR12 src public app
