@@ -17,15 +17,17 @@ class CheckStatusCode
         $this->name = $name;
     }
 
-    public function check(): mixed
+    /**
+     * @return mixed
+     */
+    public function check()
     {
         $client = new Client();
         $res = 0;
         try {
             $res = $client->request('GET', $this->name);
         } catch (ClientException | RequestException $e) {
-            echo Psr7\Message::toString($e->getRequest());
-            echo Psr7\Message::toString($e->getResponse());
+            return $e->getMessage();
         }
 
         return $res->getStatusCode();

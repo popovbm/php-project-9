@@ -18,9 +18,9 @@ class CheckHtmlData
     }
 
     /**
-     * @return array<mixed>
+     * @return mixed
      */
-    public function getHtmlData(): array
+    public function getHtmlData()
     {
         $client = new Client();
         try {
@@ -38,8 +38,7 @@ class CheckHtmlData
             ];
             return $result;
         } catch (ClientException | RequestException $e) {
-            echo $e->getRequest();
-            echo $e->getResponse();
+            return $e->getMessage();
         }
     }
 }
