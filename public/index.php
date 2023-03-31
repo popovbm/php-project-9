@@ -28,7 +28,8 @@ $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$customErrorHandler = function () use ($app) { // обработка несуществующей страницы
+$customErrorHandler = function () use ($app) {
+ // обработка несуществующей страницы
     $response = $app->getResponseFactory()->createResponse();
     return $this->get('renderer')->render($response, "error404.phtml");
 };
