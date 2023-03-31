@@ -10,7 +10,7 @@ use DiDom\Document;
 class GetHttpInfo
 {
     public string $name = '';
-    public $client;
+    public Client $client;
 
     public function __construct(string $name)
     {
