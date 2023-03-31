@@ -30,13 +30,15 @@ $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$customErrorHandler = function () use ($app) {
+$customErrorHandler = function () use ($app) { // обработка несуществующей страницы
     $response = $app->getResponseFactory()->createResponse();
-    return $this->get('renderer')->render($response, "errors.phtml");
+    return $this->get('renderer')->render($response, "error404.phtml");
 };
 $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
-try {
+$router = $app->getRouteCollector()->getRouteParser();
+
+try { // первичное подключение к бд
     $pdo = Connection::get()->connect();
     $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
     if ($parsedDatabaseSql === false) {
@@ -85,6 +87,8 @@ $app->get('/urls', function ($request, $response) {
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
     $messages = $this->get('flash')->getMessages();
+    $alert = key($messages) === 'success' ? 'success' : 'warning';
+
     $id = $args['id'];
 
     $pdo = Connection::get()->connect();
@@ -102,13 +106,14 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
         $params = [
             'flash' => $messages,
             'data' => $select,
-            'checkData' => $selectedCheck
+            'checkData' => $selectedCheck,
+            'alert' => $alert
         ];
         return $this->get('renderer')->render($response, 'url.phtml', $params);
     }
 })->setName('url');
 
-$router = $app->getRouteCollector()->getRouteParser();
+
 
 $app->post('/urls', function ($request, $response) use ($router) {
     $formData = $request->getParsedBody()['url'];
@@ -180,6 +185,15 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
         $client = new GetStatusCode($selectedUrl);
         $statusCode = $client->get();
+        switch ($statusCode) { // обработка исключений GuzzleHttp
+            case 'ClientException':
+                $this->get('flash')->addMessage('error', 'Произошла ошибка при проверке, не удалось подключиться');
+                return $response->withRedirect($router->urlFor('url', ['id' => $id]));
+            case 'RequestException':
+                $this->get('flash')->addMessage('error', 'Проверка была выполнена успешно, но сервер ответил с ошибкой');
+                $response = $response->withStatus(500);
+                return $this->get('renderer')->render($response, 'error500x.phtml');
+        }
 
         $document = new CheckHtmlData($selectedUrl);
         $htmlData = $document->getHtmlData();

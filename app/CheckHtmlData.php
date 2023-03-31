@@ -4,7 +4,6 @@ namespace Hexlet\Code;
 
 use DiDom\Document;
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
 
@@ -38,8 +37,10 @@ class CheckHtmlData
                 'description' => $description
             ];
             return $result;
-        } catch (ClientException | RequestException $e) {
-            return $e->getMessage();
+        } catch (ClientException $e) {
+            return 'ClientException';
+        } catch (RequestException $e) {
+            return 'RequestException';
         }
     }
 }

@@ -3,11 +3,9 @@
 namespace Hexlet\Code;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\ConnectException;
-use Psr\Http\Message\MessageInterface;
+use GuzzleHttp\Exception\ClientException;
+
 
 class GetStatusCode
 {
@@ -26,10 +24,12 @@ class GetStatusCode
         $client = new Client();
         $res = 0;
         try {
-            $res = $client->request('GET', $this->name, ['http_errors' => true]);
+            $res = $client->request('GET', $this->name);
             return $res->getStatusCode();
-        } catch (ConnectException | ClientException | RequestException $e) {
-            return $e->getMessage();
+        } catch (ClientException $e) {
+            return 'ClientException';
+        } catch (RequestException $e) {
+            return 'RequestException';
         }
     }
 }
