@@ -2,18 +2,34 @@
 
 namespace Hexlet\Code;
 
-use DiDom\Document;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ClientException;
+use DiDom\Document;
 
-class CheckHtmlData
+class GetHttpInfo
 {
-    public string $url = '';
+    public string $name = '';
+    public $client;
 
-    public function __construct(string $url)
+    public function __construct(string $name)
     {
-        $this->url = $url;
+        $this->name = $name;
+        $this->client = new Client();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getStatusCode()
+    {
+        $res = 0;
+        try {
+            $res = $this->client->request('GET', $this->name);
+            return $res->getStatusCode();
+        } catch (RequestException | ClientException $e) {
+            return 'error';
+        }
     }
 
     /**
@@ -21,9 +37,8 @@ class CheckHtmlData
      */
     public function getHtmlData()
     {
-        $client = new Client();
         try {
-            $res = $client->request('GET', $this->url);
+            $res = $this->client->request('GET', $this->name);
             $htmlBody = $res->getBody();
 
             $document = new Document((string) $htmlBody);
@@ -37,10 +52,8 @@ class CheckHtmlData
                 'description' => $description
             ];
             return $result;
-        } catch (ClientException $e) {
-            return 'ClientException';
-        } catch (RequestException $e) {
-            return 'RequestException';
+        } catch (RequestException | ClientException $e) {
+            return 'error';
         }
     }
 }

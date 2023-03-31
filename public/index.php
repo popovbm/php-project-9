@@ -7,9 +7,7 @@ use Slim\Factory\AppFactory;
 use DI\Container;
 use Valitron\Validator;
 use Hexlet\Code\Connection;
-use Hexlet\Code\GetStatusCode;
-use Hexlet\Code\CheckHtmlData;
-use Psr\Http\Message\ServerRequestInterface;
+use Hexlet\Code\GetHttpInfo;
 use Carbon\Carbon;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -30,8 +28,7 @@ $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$customErrorHandler = function () use ($app) {
-    // обработка несуществующей страницы
+$customErrorHandler = function () use ($app) { // обработка несуществующей страницы
     $response = $app->getResponseFactory()->createResponse();
     return $this->get('renderer')->render($response, "error404.phtml");
 };
@@ -184,21 +181,15 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
         $createdAt = Carbon::now();
 
-        $client = new GetStatusCode($selectedUrl);
-        $statusCode = $client->get();
-        switch ($statusCode) { // обработка исключений GuzzleHttp
-            case 'ClientException':
-                $this->get('flash')->addMessage('error', 'Произошла ошибка при проверке, не удалось подключиться');
-                return $response->withRedirect($router->urlFor('url', ['id' => $id]));
-            case 'RequestException':
-                $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
-                $this->get('flash')->addMessage('error', $errorMessage);
-                $response = $response->withStatus(500);
-                return $this->get('renderer')->render($response, 'error500x.phtml');
+        $client = new GetHttpInfo($selectedUrl);
+        $statusCode = $client->getStatusCode();
+        if ($statusCode === 'error') { // проверка исключений GuzzleHttp
+            $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
+            $this->get('flash')->addMessage('error', $errorMessage);
+            $response = $response->withStatus(500);
+            return $this->get('renderer')->render($response, 'error500x.phtml');
         }
-
-        $document = new CheckHtmlData($selectedUrl);
-        $htmlData = $document->getHtmlData();
+        $htmlData = $client->getHtmlData();
 
         $sql = "INSERT INTO url_checks (
             url_id, 
