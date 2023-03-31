@@ -30,7 +30,8 @@ $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$customErrorHandler = function () use ($app) { // обработка несуществующей страницы
+$customErrorHandler = function () use ($app) {
+    // обработка несуществующей страницы
     $response = $app->getResponseFactory()->createResponse();
     return $this->get('renderer')->render($response, "error404.phtml");
 };
@@ -190,7 +191,8 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
                 $this->get('flash')->addMessage('error', 'Произошла ошибка при проверке, не удалось подключиться');
                 return $response->withRedirect($router->urlFor('url', ['id' => $id]));
             case 'RequestException':
-                $this->get('flash')->addMessage('error', 'Проверка была выполнена успешно, но сервер ответил с ошибкой');
+                $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
+                $this->get('flash')->addMessage('error', $errorMessage);
                 $response = $response->withStatus(500);
                 return $this->get('renderer')->render($response, 'error500x.phtml');
         }
