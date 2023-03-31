@@ -9,6 +9,7 @@ use Valitron\Validator;
 use Hexlet\Code\Connection;
 use Hexlet\Code\GetStatusCode;
 use Hexlet\Code\CheckHtmlData;
+use Psr\Http\Message\ServerRequestInterface;
 use Carbon\Carbon;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -23,10 +24,17 @@ $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
 
+
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
-$app->addErrorMiddleware(true, true, true);
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+
+$customErrorHandler = function () use ($app) {
+    $response = $app->getResponseFactory()->createResponse();
+    return $this->get('renderer')->render($response, "errors.phtml");
+};
+$errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
 try {
     $pdo = Connection::get()->connect();
@@ -85,17 +93,19 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
     $stmt->execute([$id]);
     $select = $stmt->fetch();
 
-    $queryCheck = 'SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC';
-    $stmt = $pdo->prepare($queryCheck);
-    $stmt->execute([$id]);
-    $selectedCheck = $stmt->fetchAll();
+    if ($select) {
+        $queryCheck = 'SELECT * FROM url_checks WHERE url_id = ? ORDER BY created_at DESC';
+        $stmt = $pdo->prepare($queryCheck);
+        $stmt->execute([$id]);
+        $selectedCheck = $stmt->fetchAll();
 
-    $params = [
-        'flash' => $messages,
-        'data' => $select,
-        'checkData' => $selectedCheck
-    ];
-    return $this->get('renderer')->render($response, 'url.phtml', $params);
+        $params = [
+            'flash' => $messages,
+            'data' => $select,
+            'checkData' => $selectedCheck
+        ];
+        return $this->get('renderer')->render($response, 'url.phtml', $params);
+    }
 })->setName('url');
 
 $router = $app->getRouteCollector()->getRouteParser();

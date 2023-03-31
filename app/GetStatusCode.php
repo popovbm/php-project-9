@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ConnectException;
 use Psr\Http\Message\MessageInterface;
 
 class GetStatusCode
@@ -25,11 +26,10 @@ class GetStatusCode
         $client = new Client();
         $res = 0;
         try {
-            $res = $client->request('GET', $this->name);
-        } catch (ClientException | RequestException $e) {
+            $res = $client->request('GET', $this->name, ['http_errors' => true]);
+            return $res->getStatusCode();
+        } catch (ConnectException | ClientException | RequestException $e) {
             return $e->getMessage();
         }
-
-        return $res->getStatusCode();
     }
 }
