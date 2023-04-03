@@ -4,6 +4,7 @@ namespace Hexlet\Code;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\ClientException;
 use DiDom\Document;
 
@@ -23,37 +24,29 @@ class GetHttpInfo
      */
     public function getStatusCode()
     {
-        $res = 0;
-        try {
-            $res = $this->client->request('GET', $this->name);
-            return $res->getStatusCode();
-        } catch (RequestException | ClientException $e) {
-            return 'error';
-        }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHtmlData()
-    {
         try {
             $res = $this->client->request('GET', $this->name);
             $htmlBody = $res->getBody();
-
             $document = new Document((string) $htmlBody);
+
+            $status_code = $res->getStatusCode();
             $h1 = optional($document->first('h1'))->text();
             $title = optional($document->first('title'))->text();
             $description = optional($document->first('meta[name="description"]'))->getAttribute('content');
 
             $result = [
+                'status_code' => $status_code,
                 'h1' => $h1,
                 'title' => $title,
                 'description' => $description
             ];
+
             return $result;
-        } catch (RequestException | ClientException $e) {
-            return 'error';
+        } catch (RequestException $e) {
+            $result['error'] = 'RequestError';
+            return $result;
+        } catch (ConnectException $e) {
+            return 'ConnectError';
         }
     }
 }
