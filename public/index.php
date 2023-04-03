@@ -194,13 +194,13 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
         $createdAt = Carbon::now();
 
         $client = new GetHttpInfo($selectedUrl, $id);
-        $info = $client->getStatusCode();
-        if ($info['error'] === 'RequestError') { // если RequestException
+        $httpInfo = $client->get();
+        if ($httpInfo['error'] === 'RequestError') { // если RequestException
             $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
             $this->get('flash')->addMessage('error', $errorMessage);
             $response = $response->withStatus(500);
             return $this->get('renderer')->render($response, 'error500x.phtml');
-        } elseif ($info === 'ConnectError') { // если ConnectException
+        } elseif ($httpInfo === 'ConnectError') { // если ConnectException
             $errorMessage = 'Произошла ошибка при проверке, не удалось подключиться';
             $this->get('flash')->addMessage('danger', $errorMessage);
             return $response->withRedirect($router->urlFor('url', ['id' => $id]));
@@ -215,7 +215,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
             description) 
             VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$id, $createdAt, $info['status_code'], $info['h1'], $info['title'], $info['description']]);
+        $stmt->execute([$id, $createdAt, $httpInfo['status_code'], $httpInfo['h1'], $httpInfo['title'], $httpInfo['description']]);
         $this->get('flash')->addMessage('success', 'Страница успешно проверена');
     } catch (\PDOException $e) {
         echo $e->getMessage();

@@ -22,7 +22,7 @@ class GetHttpInfo
     /**
      * @return mixed
      */
-    public function getStatusCode()
+    public function get()
     {
         try {
             $res = $this->client->request('GET', $this->name);
