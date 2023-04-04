@@ -193,7 +193,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
         $createdAt = Carbon::now();
 
-        $client = new GetHttpInfo($selectedUrl, $id);
+        $client = new GetHttpInfo($selectedUrl);
         $httpInfo = $client->get();
 
         if ($httpInfo === 'ConnectError') { // если ConnectException

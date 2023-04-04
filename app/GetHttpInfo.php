@@ -12,6 +12,7 @@ class GetHttpInfo
 {
     public string $name = '';
     public Client $client;
+    public Client $res;
 
     public function __construct(string $name)
     {
@@ -27,7 +28,8 @@ class GetHttpInfo
         try {
             $res = $this->client->get($this->name);
         } catch (RequestException $e) {
-            if (is_null($e->getResponse())) {
+            $res = $e->getResponse();
+            if (is_null($res)) {
                 return;
             }
         } catch (ConnectException $e) {
