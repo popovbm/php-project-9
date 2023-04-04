@@ -30,7 +30,8 @@ class GetHttpInfo
         } catch (RequestException $e) {
             $res = $e->getResponse();
             if (is_null($res)) {
-                return;
+                $result['status_code'] = null;
+                return $result;
             }
         } catch (ConnectException $e) {
             return 'ConnectError';
