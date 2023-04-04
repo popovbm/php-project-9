@@ -25,28 +25,29 @@ class GetHttpInfo
     public function get()
     {
         try {
-            $res = $this->client->request('GET', $this->name);
-            $htmlBody = $res->getBody();
-            $document = new Document((string) $htmlBody);
-
-            $status_code = $res->getStatusCode();
-            $h1 = optional($document->first('h1'))->text();
-            $title = optional($document->first('title'))->text();
-            $description = optional($document->first('meta[name="description"]'))->getAttribute('content');
-
-            $result = [
-                'status_code' => $status_code,
-                'h1' => $h1,
-                'title' => $title,
-                'description' => $description
-            ];
-
-            return $result;
+            $res = $this->client->get($this->name);
         } catch (RequestException $e) {
-            $result['error'] = 'RequestError';
-            return $result;
+            if (is_null($e->getResponse())) {
+                return;
+            }
         } catch (ConnectException $e) {
             return 'ConnectError';
         }
+
+        $htmlBody = $res->getBody();
+        $document = new Document((string) $htmlBody);
+        $status_code = $res->getStatusCode();
+        $h1 = optional($document->first('h1'))->text();
+        $title = optional($document->first('title'))->text();
+        $description = optional($document->first('meta[name="description"]'))->getAttribute('content');
+
+        $result = [
+            'status_code' => $status_code,
+            'h1' => $h1,
+            'title' => $title,
+            'description' => $description
+        ];
+
+        return $result;
     }
 }

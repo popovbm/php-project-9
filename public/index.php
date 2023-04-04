@@ -28,12 +28,12 @@ $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$customErrorHandler = function () use ($app) {
-    // обработка несуществующей страницы
-    $response = $app->getResponseFactory()->createResponse();
-    return $this->get('renderer')->render($response, "error404.phtml");
-};
-$errorMiddleware->setDefaultErrorHandler($customErrorHandler);
+// $customErrorHandler = function () use ($app) {
+//     // обработка несуществующей страницы
+//     $response = $app->getResponseFactory()->createResponse();
+//     return $this->get('renderer')->render($response, "error404.phtml");
+// };
+// $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
 $router = $app->getRouteCollector()->getRouteParser();
 
@@ -195,15 +195,16 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
         $client = new GetHttpInfo($selectedUrl, $id);
         $httpInfo = $client->get();
-        if ($httpInfo['error'] === 'RequestError') { // если RequestException
-            $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
-            $this->get('flash')->addMessage('error', $errorMessage);
-            $response = $response->withStatus(500);
-            return $this->get('renderer')->render($response, 'error500x.phtml');
-        } elseif ($httpInfo === 'ConnectError') { // если ConnectException
+
+        if ($httpInfo === 'ConnectError') { // если ConnectException
             $errorMessage = 'Произошла ошибка при проверке, не удалось подключиться';
             $this->get('flash')->addMessage('danger', $errorMessage);
             return $response->withRedirect($router->urlFor('url', ['id' => $id]));
+        } elseif ($httpInfo['status_code'] !== 200) { // если RequestException
+            $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
+            $this->get('flash')->addMessage('error', $errorMessage);
+        } else {
+            $this->get('flash')->addMessage('success', 'Страница успешно проверена');
         }
 
         $sql = "INSERT INTO url_checks (
@@ -215,8 +216,8 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
             description) 
             VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$id, $createdAt, $httpInfo['status_code'], $httpInfo['h1'], $httpInfo['title'], $httpInfo['description']]);
-        $this->get('flash')->addMessage('success', 'Страница успешно проверена');
+        ['status_code' => $status_code, 'h1' => $h1, 'title' => $title, 'description' => $description] = $httpInfo;
+        $stmt->execute([$id, $createdAt, $status_code, $h1, $title, $description]);
     } catch (\PDOException $e) {
         echo $e->getMessage();
     }
