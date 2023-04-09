@@ -21,15 +21,17 @@ $container->set('renderer', function () {
 $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
-
+$container->set('pdo', function () {
+    return Connection::get()->connect();
+});
 
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
+// обработка несуществующей страницы
 $customErrorHandler = function () use ($app) {
-    // обработка несуществующей страницы
     $response = $app->getResponseFactory()->createResponse();
     return $this->get('renderer')->render($response, "error404.phtml");
 };
@@ -38,6 +40,7 @@ $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 $router = $app->getRouteCollector()->getRouteParser();
 
 try { // первичное подключение к бд
+    // $pdo = $this->get('pdo'); // если раскоментить эту строку, и закоментить следующую, работать не будет. Везде ниже в роутах, я заменил $pdo = Connection::get()->connect(); на $pdo = $this->get('pdo');
     $pdo = Connection::get()->connect();
     $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
     if ($parsedDatabaseSql === false) {
@@ -54,7 +57,7 @@ $app->get('/', function (Request $request, Response $response) {
 })->setName('main');
 
 $app->get('/urls', function ($request, $response) {
-    $pdo = Connection::get()->connect();
+    $pdo = $this->get('pdo');
     $queryUrl = 'SELECT id, name FROM urls ORDER BY created_at DESC';
     $stmt = $pdo->prepare($queryUrl);
     $stmt->execute();
@@ -101,7 +104,7 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
 
     $id = $args['id'];
 
-    $pdo = Connection::get()->connect();
+    $pdo = $this->get('pdo');
     $query = 'SELECT * FROM urls WHERE id = ?';
     $stmt = $pdo->prepare($query);
     $stmt->execute([$id]);
@@ -135,7 +138,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
     if ($validator->validate()) {
         try {
-            $pdo = Connection::get()->connect();
+            $pdo = $this->get('pdo');
 
             $url = strtolower($formData['name']);
             $parsedUrl = parse_url($url);
@@ -184,7 +187,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
     $id = $args['url_id'];
 
     try {
-        $pdo = Connection::get()->connect();
+        $pdo = $this->get('pdo');
 
         $queryUrl = 'SELECT name FROM urls WHERE id = ?';
         $stmt = $pdo->prepare($queryUrl);

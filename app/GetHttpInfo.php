@@ -29,25 +29,15 @@ class GetHttpInfo
             $res = $this->client->get($this->name);
         } catch (RequestException $e) {
             $res = $e->getResponse();
-            if (is_null($res)) {
-                $result = [
-                    'status_code' => null,
-                    'h1' => '',
-                    'title' => '',
-                    'description' => ''
-                ];
-                return $result;
-            }
         } catch (ConnectException $e) {
             return 'ConnectError';
         }
-
-        $htmlBody = $res->getBody();
+        $htmlBody = !is_null($res) ? $res->getBody() : '';
         $document = new Document((string) $htmlBody);
-        $status_code = $res->getStatusCode();
-        $h1 = optional($document->first('h1'))->text();
-        $title = optional($document->first('title'))->text();
-        $description = optional($document->first('meta[name="description"]'))->getAttribute('content');
+        $status_code = !is_null($res) ? $res->getStatusCode() : null;
+        $h1 = optional($document->first('h1'))->text() ?? '';
+        $title = optional($document->first('title'))->text() ?? '';
+        $description = optional($document->first('meta[name="description"]'))->getAttribute('content') ?? '';
 
         $result = [
             'status_code' => $status_code,
