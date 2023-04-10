@@ -1,7 +1,7 @@
 PORT ?= 8000
 start:
-	createdb databasedev || true
-	psql databasedev < database.sql
+	createdb railway || true
+	psql railway < database.sql
 	PHP_CLI_SERVER_WORKERS=5 php -S 0.0.0.0:$(PORT) -t public
 
 install:
