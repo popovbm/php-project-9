@@ -60,9 +60,4 @@ final class Connection
 
         return static::$conn;
     }
-
-    // protected function __construct()
-    // {
-    //     $this->conn = $this::get()->connect();
-    // }
 }

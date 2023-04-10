@@ -9,6 +9,7 @@ use Valitron\Validator;
 use Hexlet\Code\Connection;
 use Hexlet\Code\GetHttpInfo;
 use Carbon\Carbon;
+use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -38,19 +39,6 @@ $customErrorHandler = function () use ($app) {
 $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
 $router = $app->getRouteCollector()->getRouteParser();
-
-try { // первичное подключение к бд
-    // $pdo = $this->get('pdo'); // если раскоментить эту строку, и закоментить следующую, работать не будет. Везде ниже в роутах, я заменил $pdo = Connection::get()->connect(); на $pdo = $this->get('pdo');
-    $pdo = Connection::get()->connect();
-    $parsedDatabaseSql = file_get_contents(__DIR__ . '/../database.sql');
-    if ($parsedDatabaseSql === false) {
-        throw new \Exception("Error reading database.sql");
-    } else {
-        $pdo->exec($parsedDatabaseSql);
-    }
-} catch (\Exception $e) {
-    return $e->getMessage();
-}
 
 $app->get('/', function (Request $request, Response $response) {
     return $this->get('renderer')->render($response, "main.phtml");
