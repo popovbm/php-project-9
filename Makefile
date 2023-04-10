@@ -23,10 +23,3 @@ test-coverage:
 
 console:
 	composer exec --verbose psysh
-
-db-reset:
-	dropdb railway || true
-	createdb railway
-
-create_tables:
-	psql railway < database.sql
