@@ -1,7 +1,5 @@
 PORT ?= 8000
 start:
-	createdb railway || true
-	psql railway < database.sql
 	PHP_CLI_SERVER_WORKERS=5 php -S 0.0.0.0:$(PORT) -t public
 
 install:
@@ -25,3 +23,8 @@ test-coverage:
 
 console:
 	composer exec --verbose psysh
+
+create_tables:
+	railway connect Postgres
+	createdb railway || true
+	psql railway < database.sql
