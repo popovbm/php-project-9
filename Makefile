@@ -1,5 +1,7 @@
 PORT ?= 8000
 start:
+	createdb databasedev || true
+	psql databasedev < database.sql
 	PHP_CLI_SERVER_WORKERS=5 php -S 0.0.0.0:$(PORT) -t public
 
 install:
@@ -23,6 +25,3 @@ test-coverage:
 
 console:
 	composer exec --verbose psysh
-
-create_tables:
-	psql railway < database.sql
