@@ -33,11 +33,11 @@ class GetHttpInfo
             return 'ConnectError';
         }
         $htmlBody = !is_null($res) ? $res->getBody() : '';
-        $document = new Document((string) $htmlBody);
+        $document = !is_null($res) ? new Document((string) $htmlBody) : '';
         $status_code = !is_null($res) ? $res->getStatusCode() : null;
-        $h1 = optional($document->first('h1'))->text() ?? '';
-        $title = optional($document->first('title'))->text() ?? '';
-        $description = optional($document->first('meta[name="description"]'))->getAttribute('content') ?? '';
+        $h1 = !is_null($res) ? optional($document->first('h1'))->text() : '';
+        $title = !is_null($res) ? optional($document->first('title'))->text() : '';
+        $description = !is_null($res) ? optional($document->first('meta[name="description"]'))->getAttribute('content') : '';
 
         $result = [
             'status_code' => $status_code,

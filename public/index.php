@@ -9,7 +9,6 @@ use Valitron\Validator;
 use Hexlet\Code\Connection;
 use Hexlet\Code\GetHttpInfo;
 use Carbon\Carbon;
-use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
 
