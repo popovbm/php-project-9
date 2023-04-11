@@ -20,6 +20,3 @@ test:
 
 test-coverage:
 	composer exec --verbose phpunit tests -- --coverage-clover build/logs/clover.xml
-
-console:
-	composer exec --verbose psysh

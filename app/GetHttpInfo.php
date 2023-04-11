@@ -32,6 +32,7 @@ class GetHttpInfo
         } catch (ConnectException $e) {
             return 'ConnectError';
         }
+
         $htmlBody = !is_null($res) ? $res->getBody() : '';
         $document = !is_null($res) ? new Document((string) $htmlBody) : '';
         $status_code = !is_null($res) ? $res->getStatusCode() : null;
