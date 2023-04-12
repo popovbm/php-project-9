@@ -1,14 +1,15 @@
 <?php
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Middleware\MethodOverrideMiddleware;
 use Slim\Factory\AppFactory;
 use DI\Container;
 use Valitron\Validator;
-use Hexlet\Code\Connection;
-use Hexlet\Code\GetHttpInfo;
+use Dotenv\Dotenv;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ConnectException;
+use DiDom\Document;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -22,7 +23,36 @@ $container->set('flash', function () {
     return new \Slim\Flash\Messages();
 });
 $container->set('pdo', function () {
-    return Connection::get()->connect();
+    $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+    $dotenv->safeLoad();
+
+    $databaseUrl = parse_url($_ENV['DATABASE_URL']);
+    if (!$databaseUrl) {
+        throw new \Exception("Error reading database configuration file");
+    }
+    $dbHost = $databaseUrl['host'];
+    $dbPort = $databaseUrl['port'];
+    $dbName = ltrim($databaseUrl['path'], '/');
+    $dbUser = $databaseUrl['user'];
+    $dbPassword = $databaseUrl['pass'];
+
+    $conStr = sprintf(
+        "pgsql:host=%s;port=%d;dbname=%s;user=%s;password=%s",
+        $dbHost,
+        $dbPort,
+        $dbName,
+        $dbUser,
+        $dbPassword
+    );
+
+    $pdo = new \PDO($conStr);
+    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+
+    return $pdo;
+});
+$container->set('client', function () {
+    return new Client();
 });
 
 AppFactory::setContainer($container);
@@ -30,7 +60,6 @@ $app = AppFactory::create();
 $app->add(MethodOverrideMiddleware::class);
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-// обработка несуществующей страницы
 $customErrorHandler = function () use ($app) {
     $response = $app->getResponseFactory()->createResponse();
     return $this->get('renderer')->render($response, "error404.phtml");
@@ -39,7 +68,7 @@ $errorMiddleware->setDefaultErrorHandler($customErrorHandler);
 
 $router = $app->getRouteCollector()->getRouteParser();
 
-$app->get('/', function (Request $request, Response $response) {
+$app->get('/', function ($request, $response) {
     return $this->get('renderer')->render($response, "main.phtml");
 })->setName('main');
 
@@ -76,6 +105,7 @@ $app->get('/urls', function ($request, $response) {
 
 $app->get('/urls/{id}', function ($request, $response, $args) {
     $messages = $this->get('flash')->getMessages();
+
     $alert = '';
     switch (key($messages)) {
         case 'success':
@@ -112,8 +142,6 @@ $app->get('/urls/{id}', function ($request, $response, $args) {
         return $this->get('renderer')->render($response, 'url.phtml', $params);
     }
 })->setName('url');
-
-
 
 $app->post('/urls', function ($request, $response) use ($router) {
     $formData = $request->getParsedBody()['url'];
@@ -170,6 +198,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
     return $this->get('renderer')->render($response, 'main.phtml', $params);
 });
 
+
 $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($router) {
     $id = $args['url_id'];
 
@@ -183,19 +212,28 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
 
         $createdAt = Carbon::now();
 
-        $client = new GetHttpInfo($selectedUrl);
-        $httpInfo = $client->get();
-
-        if ($httpInfo === 'ConnectError') { // если ConnectException
+        $client = $this->get('client');
+        try {
+            $res = $client->get($selectedUrl);
+            $this->get('flash')->addMessage('success', 'Страница успешно проверена');
+        } catch (RequestException $e) {
+            $res = $e->getResponse();
+            $this->get('flash')->clearMessages();
+            $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
+            $this->get('flash')->addMessage('error', $errorMessage);
+        } catch (ConnectException $e) {
             $errorMessage = 'Произошла ошибка при проверке, не удалось подключиться';
             $this->get('flash')->addMessage('danger', $errorMessage);
             return $response->withRedirect($router->urlFor('url', ['id' => $id]));
-        } elseif ($httpInfo['status_code'] !== 200) { // если RequestException
-            $errorMessage = 'Проверка была выполнена успешно, но сервер ответил c ошибкой';
-            $this->get('flash')->addMessage('error', $errorMessage);
-        } else {
-            $this->get('flash')->addMessage('success', 'Страница успешно проверена');
         }
+
+        $htmlBody = !is_null($res) ? $res->getBody() : '';
+        /** @var Document $document */
+        $document = !is_null($res) ? new Document((string) $htmlBody) : '';
+        $statusCode = !is_null($res) ? $res->getStatusCode() : null;
+        $h1 = !is_null($res) ? optional($document->first('h1'))->text() : '';
+        $title = !is_null($res) ? optional($document->first('title'))->text() : '';
+        $description = !is_null($res) ? optional($document->first('meta[name="description"]'))->getAttribute('content') : '';
 
         $sql = "INSERT INTO url_checks (
             url_id, 
@@ -206,8 +244,7 @@ $app->post('/urls/{url_id}/checks', function ($request, $response, $args) use ($
             description) 
             VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        ['status_code' => $status_code, 'h1' => $h1, 'title' => $title, 'description' => $description] = $httpInfo;
-        $stmt->execute([$id, $createdAt, $status_code, $h1, $title, $description]);
+        $stmt->execute([$id, $createdAt, $statusCode, $h1, $title, $description]);
     } catch (\PDOException $e) {
         echo $e->getMessage();
     }
