@@ -182,7 +182,7 @@ $app->post('/urls', function ($request, $response) use ($router) {
 
             $this->get('flash')->addMessage('success', 'Страница успешно добавлена');
             return $response->withRedirect($router->urlFor('url', ['id' => $lastInsertId]));
-        } catch (\PDOException $e) {
+        } catch (\Throwable | \PDOException $e) {
             echo $e->getMessage();
         }
     }
